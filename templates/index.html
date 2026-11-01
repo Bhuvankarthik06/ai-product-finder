@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Product Finder – Smart E-Commerce Search & Recommendations</title>
+  <meta name="description" content="Discover electronics, laptops, phones, headphones, cameras and smartwatches using natural language. Powered by AI semantic search and machine learning recommendations.">
+
+  <!-- Favicon icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2226%22 font-size=%2224%22>🛍️</text></svg>">
+
+  <!-- Modern Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body data-theme="dark">
+
+  <!-- ===== TOP NAVIGATION BAR ===== -->
+  <header class="top-bar">
+    <div class="top-bar__inner">
+      <a href="/" class="logo" aria-label="AI Product Finder home">
+        <span class="logo__icon">🛍️</span>
+        <div class="logo__brand">
+          <span class="logo__text">AI<span class="logo__accent">Finder</span></span>
+          <span class="logo__tag">PRO</span>
+        </div>
+      </a>
+
+      <nav class="top-bar__nav" aria-label="Quick actions navigation">
+        <div class="header-stats">
+          <span id="header-count" class="header-count" aria-live="polite">Loading...</span>
+        </div>
+
+        <button type="button" id="wishlist-btn" class="nav-action-btn" aria-label="View saved wishlist">
+          <span class="nav-action-btn__icon">❤️</span>
+          <span class="nav-action-btn__text">Saved</span>
+          <span id="wishlist-count" class="nav-badge" hidden>0</span>
+        </button>
+
+        <button type="button" id="compare-nav-btn" class="nav-action-btn" aria-label="View product comparison">
+          <span class="nav-action-btn__icon">⚖️</span>
+          <span class="nav-action-btn__text">Compare</span>
+          <span id="compare-count" class="nav-badge" hidden>0</span>
+        </button>
+
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
+          <span class="theme-toggle__icon" id="theme-icon">🌙</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== AI ASSISTANT HERO ===== -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero__glow hero__glow--1" aria-hidden="true"></div>
+      <div class="hero__glow hero__glow--2" aria-hidden="true"></div>
+
+      <div class="hero__inner">
+        <div class="hero__badge-wrap">
+          <span class="hero__badge">
+            <span class="hero__badge-pulse"></span>
+            ✨ Next-Gen AI Natural Language Search
+          </span>
+        </div>
+
+        <h1 id="hero-heading" class="hero__title">
+          Tell us what you need.<br>
+          <span class="hero__title-gradient">Our AI finds the perfect match.</span>
+        </h1>
+        <p class="hero__subtitle">
+          Describe budget, specs, brand or use-case in plain English — our semantic assistant extracts exact filters & finds ranked products in milliseconds.
+        </p>
+
+        <!-- Natural Language AI Search Box -->
+        <form id="ask-form" class="ask-form" autocomplete="off" novalidate>
+          <label for="ask-input" class="sr-only">Describe the product you want</label>
+          <div class="ask-form__wrap">
+            <span class="ask-form__icon" aria-hidden="true">✨</span>
+            <input id="ask-input" type="text" maxlength="300"
+                   placeholder="e.g. lightweight gaming laptop with 16GB RAM under 90k"
+                   aria-describedby="ask-hint">
+            <button type="button" id="ask-clear" class="ask-form__clear" aria-label="Clear search" hidden>✕</button>
+            <button type="submit" id="ask-btn" class="ask-form__submit">
+              <span class="ask-btn__text">Find Products</span>
+              <span class="ask-btn__spinner" aria-hidden="true" hidden></span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick AI Prompt Inspiration -->
+        <div id="ask-hint" class="hero__prompts">
+          <span class="hero__prompts-label">Try asking:</span>
+          <div class="examples">
+            <button type="button" class="eg-chip">💻 laptop for gaming under 90k</button>
+            <button type="button" class="eg-chip">🎧 noise cancelling earbuds below 8000</button>
+            <button type="button" class="eg-chip">📱 5G smartphone under 30000 with 120Hz</button>
+            <button type="button" class="eg-chip">⌚ smartwatch with GPS &amp; long battery</button>
+          </div>
+        </div>
+
+        <!-- Category Quick-Select Icons Bar -->
+        <div class="category-quick-bar" aria-label="Explore popular categories">
+          <span class="category-quick-bar__title">Explore:</span>
+          <div class="category-pills" id="category-pills">
+            <button type="button" class="cat-pill active" data-category="">🔥 All Products</button>
+            <button type="button" class="cat-pill" data-category="Smartphones">📱 Smartphones</button>
+            <button type="button" class="cat-pill" data-category="Laptops">💻 Laptops</button>
+            <button type="button" class="cat-pill" data-category="Headphones">🎧 Audio &amp; Buds</button>
+            <button type="button" class="cat-pill" data-category="Smartwatches">⌚ Smartwatches</button>
+          </div>
+        </div>
+
+        <!-- AI Filter Chips (shown after assistant responds) -->
+        <div id="ai-result" class="ai-result" hidden aria-live="polite">
+          <div class="ai-result__header">
+            <div class="ai-result__tag-group">
+              <span id="ai-source-badge" class="ai-badge">🤖 AI Extracted</span>
+              <span id="ai-summary" class="ai-summary"></span>
+            </div>
+            <button type="button" id="ai-clear" class="ai-clear-btn">✕ Clear AI search</button>
+          </div>
+          <div id="ai-chips" class="ai-chips"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== MAIN CONTENT LAYOUT ===== -->
+    <div class="layout">
+
+      <!-- FILTER SIDEBAR -->
+      <aside class="sidebar" id="sidebar-panel" aria-label="Filters">
+        <div class="sidebar__inner">
+          <div class="sidebar__header">
+            <div class="sidebar__title-wrap">
+              <span class="sidebar__icon">🎛️</span>
+              <h2 class="sidebar__title">Filters</h2>
+              <span id="active-filter-count" class="filter-count-badge" hidden>0</span>
+            </div>
+            <button type="button" id="f-reset" class="btn-ghost btn-sm">Reset all</button>
+          </div>
+
+          <!-- Keyword Search -->
+          <div class="filter-group">
+            <label class="filter-label" for="f-q">
+              <span class="filter-label__text">Search Catalog</span>
+              <div class="input-wrap">
+                <span class="input-icon" aria-hidden="true">🔍</span>
+                <input id="f-q" type="search" placeholder="Model, feature, keyword…" autocomplete="off">
+                <button type="button" id="f-q-clear" class="input-clear" aria-label="Clear search" hidden>✕</button>
+              </div>
+            </label>
+          </div>
+
+          <!-- Category Select -->
+          <div class="filter-group">
+            <label class="filter-label" for="f-category">
+              <span class="filter-label__text">Category</span>
+              <div class="select-wrap">
+                <select id="f-category">
+                  <option value="">All Categories</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <!-- Brand Select -->
+          <div class="filter-group">
+            <label class="filter-label" for="f-brand">
+              <span class="filter-label__text">Brand</span>
+              <div class="select-wrap">
+                <select id="f-brand">
+                  <option value="">All Brands</option>
+                </select>
+              </div>
+            </label>
+          </div>
+
+          <!-- Price Range & Quick Presets -->
+          <div class="filter-group">
+            <span class="filter-label__text">Price Range (₹)</span>
+            <div class="price-pair">
+              <label class="filter-label price-pair__col" for="f-min">
+                <span class="price-symbol">₹</span>
+                <input id="f-min" type="number" min="0" step="500" placeholder="Min">
+              </label>
+              <span class="price-pair__sep">–</span>
+              <label class="filter-label price-pair__col" for="f-max">
+                <span class="price-symbol">₹</span>
+                <input id="f-max" type="number" min="0" step="500" placeholder="Max">
+              </label>
+            </div>
+
+            <!-- Quick Budget Presets -->
+            <div class="budget-presets" aria-label="Budget quick presets">
+              <button type="button" class="preset-btn" data-min="" data-max="15000">&lt; ₹15k</button>
+              <button type="button" class="preset-btn" data-min="15000" data-max="40000">₹15k–40k</button>
+              <button type="button" class="preset-btn" data-min="40000" data-max="80000">₹40k–80k</button>
+              <button type="button" class="preset-btn" data-min="80000" data-max="">&gt; ₹80k</button>
+            </div>
+          </div>
+
+          <!-- Star Rating Filter -->
+          <div class="filter-group">
+            <label class="filter-label" for="f-rating">
+              <span class="filter-label__text">Minimum Customer Rating</span>
+              <div class="select-wrap">
+                <select id="f-rating">
+                  <option value="">Any Rating</option>
+                  <option value="4.5">⭐ 4.5 &amp; above (Top Rated)</option>
+                  <option value="4">⭐ 4.0 &amp; above (Recommended)</option>
+                  <option value="3.5">⭐ 3.5 &amp; above</option>
+                </select>
+              </div>
+            </label>
+            <div class="rating-pill-row">
+              <button type="button" class="rating-pill" data-rating="4.5">★ 4.5+</button>
+              <button type="button" class="rating-pill" data-rating="4.0">★ 4.0+</button>
+              <button type="button" class="rating-pill" data-rating="3.5">★ 3.5+</button>
+              <button type="button" class="rating-pill active" data-rating="">All</button>
+            </div>
+          </div>
+
+          <!-- Availability Filter -->
+          <div class="filter-group filter-group--checkbox">
+            <label class="checkbox-label" for="f-stock">
+              <input type="checkbox" id="f-stock" class="custom-checkbox">
+              <span class="checkbox-text">In Stock Only</span>
+            </label>
+          </div>
+
+          <!-- Sidebar Sort Select -->
+          <div class="filter-group">
+            <label class="filter-label" for="f-sort">
+              <span class="filter-label__text">Sort Order</span>
+              <div class="select-wrap">
+                <select id="f-sort">
+                  <option value="relevance">Best Match / Relevance</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="rating_desc">Highest Customer Rating</option>
+                </select>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Mobile Filter Toggle (visible on smaller screens) -->
+        <button type="button" id="filter-toggle" class="filter-toggle" aria-expanded="false" aria-controls="sidebar-panel">
+          <span>🎛️ Filters &amp; Sort</span>
+          <span class="filter-toggle__arrow">▼</span>
+        </button>
+      </aside>
+
+      <!-- RESULTS SECTION -->
+      <section class="results" aria-label="Product search results">
+        
+        <!-- Results Toolbar -->
+        <div class="results__toolbar">
+          <div class="results__toolbar-left">
+            <p id="count" class="results__count" aria-live="polite" aria-atomic="true">Loading products…</p>
+            <div class="results__relaxed" id="relaxed-note" hidden>
+              <span class="relaxed-icon">ℹ️</span>
+              <span>Exact feature match relaxed — showing closest matches by category &amp; budget.</span>
+            </div>
+          </div>
+
+          <div class="results__toolbar-right">
+            <!-- View Mode Switcher -->
+            <div class="view-mode-group" role="group" aria-label="Product layout view">
+              <button type="button" id="view-grid" class="view-btn active" title="Grid View" aria-label="Grid layout" aria-pressed="true">
+                <span aria-hidden="true">⊞</span>
+              </button>
+              <button type="button" id="view-list" class="view-btn" title="List View" aria-label="List layout" aria-pressed="false">
+                <span aria-hidden="true">☰</span>
+              </button>
+            </div>
+
+            <!-- Sort By Quick Selector in toolbar -->
+            <div class="toolbar-sort-wrap">
+              <label for="toolbar-sort" class="sr-only">Sort by</label>
+              <select id="toolbar-sort" class="toolbar-sort">
+                <option value="relevance">Best Match</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating_desc">Top Rated</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Filter Badges Bar -->
+        <div id="active-tags-bar" class="active-tags-bar" hidden aria-label="Currently applied filters">
+          <span class="active-tags-title">Active:</span>
+          <div id="active-tags-list" class="active-tags-list"></div>
+          <button type="button" id="clear-all-tags-btn" class="active-tags-clear">Clear all</button>
+        </div>
+
+        <!-- Loading Skeletons -->
+        <div id="loading" class="skeleton-grid" aria-label="Loading products" hidden>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+
+        <!-- Error Banner -->
+        <div id="error-banner" class="error-banner" role="alert" hidden>
+          <span class="error-banner__icon">⚠️</span>
+          <span id="error-message"></span>
+          <button type="button" id="error-retry" class="btn-ghost btn-sm">Try Again</button>
+        </div>
+
+        <!-- Product Grid / List -->
+        <ul id="product-grid" class="product-grid" aria-label="Products"></ul>
+
+        <!-- Empty State -->
+        <div id="empty" class="empty-state" hidden>
+          <div class="empty-state__icon">🔍</div>
+          <h3 class="empty-state__title">No matching products found</h3>
+          <p class="empty-state__text">Try loosening your price filters, selecting another category, or clearing keywords.</p>
+          <div class="empty-state__actions">
+            <button type="button" id="empty-reset" class="btn-primary">Reset All Filters</button>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav id="pager" class="pager" aria-label="Pagination"></nav>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===== PRODUCT DETAIL MODAL ===== -->
+  <dialog id="detail-modal" class="detail-modal" aria-labelledby="detail-name">
+    <div class="detail-modal__inner">
+      <button type="button" id="detail-close" class="detail-close" aria-label="Close product details">✕</button>
+
+      <!-- Loading State -->
+      <div id="detail-loading" class="detail-loading" hidden>
+        <div class="detail-skeleton"></div>
+      </div>
+
+      <!-- Detail Body Content -->
+      <div id="detail-body" class="detail-body"></div>
+    </div>
+  </dialog>
+
+  <!-- ===== PRODUCT COMPARISON MODAL ===== -->
+  <dialog id="compare-modal" class="compare-modal" aria-labelledby="compare-heading">
+    <div class="compare-modal__inner">
+      <div class="compare-modal__header">
+        <div class="compare-modal__title-wrap">
+          <span class="compare-modal__icon">⚖️</span>
+          <h2 id="compare-heading" class="compare-modal__title">Product Comparison</h2>
+        </div>
+        <button type="button" id="compare-close" class="detail-close" aria-label="Close comparison">✕</button>
+      </div>
+      <div id="compare-body" class="compare-modal__body"></div>
+    </div>
+  </dialog>
+
+  <!-- ===== WISHLIST MODAL ===== -->
+  <dialog id="wishlist-modal" class="wishlist-modal" aria-labelledby="wishlist-heading">
+    <div class="wishlist-modal__inner">
+      <div class="wishlist-modal__header">
+        <div class="wishlist-modal__title-wrap">
+          <span class="wishlist-modal__icon">❤️</span>
+          <h2 id="wishlist-heading" class="wishlist-modal__title">Your Saved Products</h2>
+        </div>
+        <button type="button" id="wishlist-close" class="detail-close" aria-label="Close wishlist">✕</button>
+      </div>
+      <div id="wishlist-body" class="wishlist-modal__body"></div>
+    </div>
+  </dialog>
+
+  <!-- ===== FLOATING COMPARISON DOCK ===== -->
+  <aside id="compare-dock" class="compare-dock" hidden aria-label="Floating compare bar">
+    <div class="compare-dock__inner">
+      <div class="compare-dock__info">
+        <span class="compare-dock__icon">⚖️</span>
+        <span id="compare-dock-text" class="compare-dock__text">0 products selected</span>
+      </div>
+      <div class="compare-dock__actions">
+        <button type="button" id="compare-dock-btn" class="btn-primary btn-sm">Compare Now</button>
+        <button type="button" id="compare-dock-clear" class="btn-ghost btn-sm">Clear</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast Notifications Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

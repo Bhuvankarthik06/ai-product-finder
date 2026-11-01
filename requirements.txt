@@ -1,0 +1,19 @@
+# Core framework
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.30
+
+# Database drivers
+PyMySQL==1.1.1
+cryptography>=42.0.0
+
+# AI / ML
+scikit-learn>=1.4
+anthropic>=0.40.0
+
+# Environment / config
+python-dotenv==1.0.1
+
+# Testing
+pytest>=8.0
+pytest-flask>=1.3
